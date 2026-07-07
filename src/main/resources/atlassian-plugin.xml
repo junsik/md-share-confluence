@@ -24,7 +24,9 @@
     <category name="external-content"/>
     <alias name="markdown"/>
     <parameters>
-      <parameter name="attachment" type="attachment"/>
+      <!-- type="attachment" 피커는 드롭다운이 비는 알려진 Confluence 버그(CONFSERVER-24016)가
+           있어 string 으로 받는다. 파일명이 틀리면 매크로가 페이지의 md 첨부 목록을 보여준다. -->
+      <parameter name="attachment" type="string"/>
       <parameter name="url" type="string"/>
     </parameters>
   </xhtml-macro>

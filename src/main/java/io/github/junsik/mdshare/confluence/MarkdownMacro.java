@@ -62,7 +62,8 @@ public class MarkdownMacro implements Macro {
         }
         Attachment attachment = attachmentManager.getAttachment(entity, attachmentName);
         if (attachment == null) {
-            return errorBox("Attachment not found on this page: " + attachmentName);
+            return errorBox("Attachment not found on this page: " + attachmentName
+                    + markdownAttachmentHint(entity));
         }
         try (InputStream in = attachmentManager.getAttachmentData(attachment);
              ByteArrayOutputStream out = new ByteArrayOutputStream()) {
@@ -75,6 +76,25 @@ public class MarkdownMacro implements Macro {
         } catch (IOException e) {
             return errorBox("Failed to read attachment: " + attachmentName);
         }
+    }
+
+    /** 오타를 스스로 고칠 수 있도록 이 페이지의 markdown 첨부 파일명을 알려준다. */
+    private String markdownAttachmentHint(ContentEntityObject entity) {
+        StringBuilder names = new StringBuilder();
+        try {
+            for (Attachment candidate : attachmentManager.getLatestVersionsOfAttachments(entity)) {
+                String name = candidate.getFileName();
+                if (name != null && name.toLowerCase().endsWith(".md")) {
+                    names.append(names.length() == 0 ? "" : ", ").append(name);
+                }
+            }
+        } catch (RuntimeException e) {
+            return "";
+        }
+        if (names.length() == 0) {
+            return " (this page has no .md attachments)";
+        }
+        return " — markdown attachments on this page: " + names;
     }
 
     private String renderMarkdown(String markdown) {
