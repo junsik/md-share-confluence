@@ -6,6 +6,7 @@ import com.atlassian.confluence.macro.Macro;
 import com.atlassian.confluence.macro.MacroExecutionException;
 import com.atlassian.confluence.pages.Attachment;
 import com.atlassian.confluence.pages.AttachmentManager;
+import com.atlassian.confluence.setup.settings.SettingsManager;
 import com.atlassian.plugins.whitelist.OutboundWhitelist;
 import com.atlassian.plugins.whitelist.WhitelistService;
 import com.atlassian.webresource.api.assembler.PageBuilderService;
@@ -27,15 +28,18 @@ public class MarkdownMacro implements Macro {
 
     private final AttachmentManager attachmentManager;
     private final PageBuilderService pageBuilderService;
-    private final MarkdownRenderer renderer = new MarkdownRenderer();
+    private final MarkdownRenderer renderer;
     private final UrlMarkdownFetcher urlFetcher;
 
     public MarkdownMacro(AttachmentManager attachmentManager,
                          PageBuilderService pageBuilderService,
+                         SettingsManager settingsManager,
                          WhitelistService whitelistService,
                          OutboundWhitelist outboundWhitelist) {
         this.attachmentManager = attachmentManager;
         this.pageBuilderService = pageBuilderService;
+        // 절대 URL 이어야 PDF/Word export 의 이미지 fetch 가 확실히 동작한다.
+        this.renderer = new MarkdownRenderer(settingsManager.getGlobalSettings().getBaseUrl());
         this.urlFetcher = new UrlMarkdownFetcher(whitelistService, outboundWhitelist);
     }
 
@@ -105,7 +109,8 @@ public class MarkdownMacro implements Macro {
 
     private String renderMarkdown(String markdown) {
         String html = renderer.render(markdown);
-        if (html.contains("language-mermaid")) {
+        // Kroki 미설정일 때만 클라이언트 JS 폴백 — 설정 시 mermaid 는 이미 img 다.
+        if (html.contains("language-mermaid") && !KrokiMermaid.enabled()) {
             requireMermaidResources();
         }
         return "<div class=\"md-share-markdown\">" + html + "</div>";

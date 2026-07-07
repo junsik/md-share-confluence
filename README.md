@@ -19,8 +19,28 @@ One macro, three sources (priority order):
 | Body | Write Markdown directly in the macro body |
 
 Rendering is server-side with [flexmark-java](https://github.com/vladsch/flexmark-java)
-(GFM tables, task lists, strikethrough). Tables get the `confluenceTable` class so they
-match native Confluence styling.
+(GFM tables, task lists, strikethrough). Tables carry the native
+`confluenceTable`/`confluenceTh`/`confluenceTd` classes, so they match Confluence styling
+on pages **and in PDF/Word export**.
+
+### Mermaid diagrams
+
+Two modes:
+
+- **Kroki (recommended)** — set a [Kroki](https://kroki.io) service URL and mermaid fences
+  render server-side to PNG images served from the Confluence origin
+  (`/plugins/servlet/md-share/mermaid/{encoded}.png`), so diagrams appear on pages **and in
+  PDF/Word export**. Configure in `setenv.sh`/`setenv.bat`:
+
+  ```
+  -Dmdshare.confluence.kroki-url=https://kroki.example.com
+  ```
+
+  The image URL embeds the diagram source (Kroki's deflate+base64url encoding), so the
+  servlet is stateless and responses are immutable/cacheable.
+- **Client-side fallback** — without Kroki, a bundled mermaid 9.4.3 renders diagrams in the
+  browser on page view (loaded only when a diagram is present). PDF/Word export keeps the
+  code block in this mode.
 
 ### Security model
 
@@ -73,7 +93,6 @@ property (restart needed for that once) if you want URL rendering.
 
 ## Roadmap
 
-- Mermaid code-fence rendering (client-side, bundled web-resource)
 - Syntax highlighting for code blocks
 - Configurable cache TTL
 

@@ -10,6 +10,13 @@
 
   <component-import key="attachmentManager" interface="com.atlassian.confluence.pages.AttachmentManager"/>
   <component-import key="pageBuilderService" interface="com.atlassian.webresource.api.assembler.PageBuilderService"/>
+  <component-import key="settingsManager" interface="com.atlassian.confluence.setup.settings.SettingsManager"/>
+
+  <!-- mermaid → PNG (Kroki 위임). PDF/Word export 가 fetch 하는 same-origin 이미지 URL. -->
+  <servlet name="md-share mermaid image" key="md-share-mermaid-image"
+           class="io.github.junsik.mdshare.confluence.MermaidImageServlet">
+    <url-pattern>/md-share/mermaid/*</url-pattern>
+  </servlet>
   <component-import key="whitelistService" interface="com.atlassian.plugins.whitelist.WhitelistService"/>
   <component-import key="outboundWhitelist" interface="com.atlassian.plugins.whitelist.OutboundWhitelist"/>
 
