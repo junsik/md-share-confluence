@@ -17,6 +17,8 @@
   <xhtml-macro name="md-share" class="io.github.junsik.mdshare.confluence.MarkdownMacro" key="md-share-macro">
     <description key="io.github.junsik.md-share-confluence.md-share.desc"/>
     <category name="formatting"/>
+    <category name="external-content"/>
+    <alias name="markdown"/>
     <parameters>
       <parameter name="attachment" type="attachment"/>
       <parameter name="url" type="string"/>
