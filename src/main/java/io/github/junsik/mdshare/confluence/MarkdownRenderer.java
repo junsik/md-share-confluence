@@ -37,11 +37,15 @@ public final class MarkdownRenderer {
     private final HtmlRenderer renderer;
 
     public MarkdownRenderer() {
-        this("");
+        this("", () -> "");
     }
 
-    /** baseUrl prefixes diagram-image servlet links (absolute URLs survive PDF export). */
-    public MarkdownRenderer(String baseUrl) {
+    /**
+     * baseUrl prefixes diagram-image servlet links (absolute URLs survive PDF
+     * export); krokiUrlSupplier is read per render so admin config changes
+     * apply without a restart.
+     */
+    public MarkdownRenderer(String baseUrl, java.util.function.Supplier<String> krokiUrlSupplier) {
         MutableDataSet options = new MutableDataSet();
         options.set(Parser.EXTENSIONS, Arrays.asList(
                 TablesExtension.create(),
@@ -57,7 +61,7 @@ public final class MarkdownRenderer {
                         return MarkdownRenderer::setConfluenceTableAttributes;
                     }
                 })
-                .nodeRendererFactory(new MermaidNodeRenderer.Factory(baseUrl))
+                .nodeRendererFactory(new MermaidNodeRenderer.Factory(baseUrl, krokiUrlSupplier))
                 .build();
     }
 
@@ -69,9 +73,11 @@ public final class MarkdownRenderer {
     private static final class MermaidNodeRenderer implements NodeRenderer {
 
         private final String baseUrl;
+        private final java.util.function.Supplier<String> krokiUrlSupplier;
 
-        private MermaidNodeRenderer(String baseUrl) {
+        private MermaidNodeRenderer(String baseUrl, java.util.function.Supplier<String> krokiUrlSupplier) {
             this.baseUrl = baseUrl == null ? "" : baseUrl.replaceAll("/+$", "");
+            this.krokiUrlSupplier = krokiUrlSupplier;
         }
 
         @Override
@@ -82,7 +88,8 @@ public final class MarkdownRenderer {
 
         private void render(FencedCodeBlock node, NodeRendererContext context, HtmlWriter html) {
             String info = node.getInfo().toString().trim();
-            if (!"mermaid".equalsIgnoreCase(info) || !KrokiMermaid.enabled()) {
+            String krokiUrl = krokiUrlSupplier.get();
+            if (!"mermaid".equalsIgnoreCase(info) || krokiUrl == null || krokiUrl.isEmpty()) {
                 context.delegateRender();
                 return;
             }
@@ -97,14 +104,16 @@ public final class MarkdownRenderer {
 
         static final class Factory implements DelegatingNodeRendererFactory {
             private final String baseUrl;
+            private final java.util.function.Supplier<String> krokiUrlSupplier;
 
-            Factory(String baseUrl) {
+            Factory(String baseUrl, java.util.function.Supplier<String> krokiUrlSupplier) {
                 this.baseUrl = baseUrl;
+                this.krokiUrlSupplier = krokiUrlSupplier;
             }
 
             @Override
             public NodeRenderer apply(DataHolder options) {
-                return new MermaidNodeRenderer(baseUrl);
+                return new MermaidNodeRenderer(baseUrl, krokiUrlSupplier);
             }
 
             @Override

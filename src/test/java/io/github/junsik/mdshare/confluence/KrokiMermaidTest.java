@@ -1,6 +1,5 @@
 package io.github.junsik.mdshare.confluence;
 
-import org.junit.After;
 import org.junit.Test;
 
 import java.nio.charset.StandardCharsets;
@@ -14,11 +13,6 @@ import static org.junit.Assert.assertTrue;
 public class KrokiMermaidTest {
 
     private static final String DIAGRAM = "flowchart LR\n  A[리포트] --> B[md-share]\n";
-
-    @After
-    public void clearProperty() {
-        System.clearProperty(KrokiMermaid.KROKI_URL_PROPERTY);
-    }
 
     @Test
     public void encodeIsKrokiCompatibleDeflateBase64Url() throws Exception {
@@ -35,14 +29,8 @@ public class KrokiMermaidTest {
     }
 
     @Test
-    public void disabledWithoutProperty() {
-        assertFalse(KrokiMermaid.enabled());
-    }
-
-    @Test
     public void mermaidFenceBecomesServletImageWhenKrokiConfigured() {
-        System.setProperty(KrokiMermaid.KROKI_URL_PROPERTY, "https://kroki.example.com");
-        String html = new MarkdownRenderer("https://wiki.example.com")
+        String html = new MarkdownRenderer("https://wiki.example.com", () -> "https://kroki.example.com")
                 .render("```mermaid\n" + DIAGRAM + "```\n");
         assertTrue(html.contains("<img src=\"https://wiki.example.com/plugins/servlet/md-share/mermaid/"));
         assertTrue(html.contains("class=\"md-share-mermaid\""));
@@ -51,7 +39,7 @@ public class KrokiMermaidTest {
 
     @Test
     public void mermaidFenceStaysCodeBlockWithoutKroki() {
-        String html = new MarkdownRenderer("https://wiki.example.com")
+        String html = new MarkdownRenderer("https://wiki.example.com", () -> "")
                 .render("```mermaid\n" + DIAGRAM + "```\n");
         assertTrue(html.contains("language-mermaid"));
         assertFalse(html.contains("<img"));
@@ -59,9 +47,18 @@ public class KrokiMermaidTest {
 
     @Test
     public void nonMermaidFencesStillRenderAsCode() {
-        System.setProperty(KrokiMermaid.KROKI_URL_PROPERTY, "https://kroki.example.com");
-        String html = new MarkdownRenderer("").render("```python\nprint(1)\n```\n");
+        String html = new MarkdownRenderer("", () -> "https://kroki.example.com")
+                .render("```python\nprint(1)\n```\n");
         assertTrue(html.contains("language-python"));
         assertFalse(html.contains("<img"));
+    }
+
+    @Test
+    public void krokiUrlIsReadPerRender() {
+        String[] url = {""};
+        MarkdownRenderer renderer = new MarkdownRenderer("", () -> url[0]);
+        assertTrue(renderer.render("```mermaid\nA-->B\n```\n").contains("language-mermaid"));
+        url[0] = "https://kroki.example.com";  // 관리자 설정 변경 시나리오 — 재시작 없이 반영
+        assertTrue(renderer.render("```mermaid\nA-->B\n```\n").contains("<img"));
     }
 }

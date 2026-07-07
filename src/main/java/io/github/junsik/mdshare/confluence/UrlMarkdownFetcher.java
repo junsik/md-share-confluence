@@ -133,6 +133,8 @@ public class UrlMarkdownFetcher {
 
     private static String download(String url) throws IOException {
         HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
+        // 구형 번들 JRE 의 cacerts 에 없는 Let's Encrypt 루트를 플러그인 번들 신뢰로 보강.
+        PluginTls.apply(connection);
         // Redirects are not followed: a redirect could escape the allowlist.
         connection.setInstanceFollowRedirects(false);
         connection.setConnectTimeout(TIMEOUT_MILLIS);

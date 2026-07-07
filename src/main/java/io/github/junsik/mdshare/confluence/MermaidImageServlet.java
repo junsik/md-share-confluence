@@ -23,7 +23,12 @@ public class MermaidImageServlet extends HttpServlet {
     private static final Pattern PATH = Pattern.compile("^/mermaid/([A-Za-z0-9_-]+)\\.png$");
     private static final int MAX_CACHE_ENTRIES = 256;
 
+    private final PluginConfig config;
     private final Map<String, byte[]> cache = new ConcurrentHashMap<>();
+
+    public MermaidImageServlet(PluginConfig config) {
+        this.config = config;
+    }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -36,7 +41,7 @@ public class MermaidImageServlet extends HttpServlet {
         byte[] png = cache.get(payload);
         if (png == null) {
             try {
-                png = KrokiMermaid.fetchPng(payload);
+                png = KrokiMermaid.fetchPng(config.getKrokiUrl(), payload);
             } catch (IOException e) {
                 response.sendError(HttpServletResponse.SC_BAD_GATEWAY, "diagram rendering failed");
                 return;

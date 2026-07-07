@@ -11,6 +11,16 @@
   <component-import key="attachmentManager" interface="com.atlassian.confluence.pages.AttachmentManager"/>
   <component-import key="pageBuilderService" interface="com.atlassian.webresource.api.assembler.PageBuilderService"/>
   <component-import key="settingsManager" interface="com.atlassian.confluence.setup.settings.SettingsManager"/>
+  <component-import key="pluginSettingsFactory" interface="com.atlassian.sal.api.pluginsettings.PluginSettingsFactory"/>
+  <component-import key="permissionManager" interface="com.atlassian.confluence.security.PermissionManager"/>
+
+  <component key="pluginConfig" class="io.github.junsik.mdshare.confluence.PluginConfig"/>
+
+  <!-- 관리자 설정 화면 — Kroki URL 을 재시작 없이 저장/반영 -->
+  <servlet name="md-share admin" key="md-share-admin"
+           class="io.github.junsik.mdshare.confluence.AdminConfigServlet">
+    <url-pattern>/md-share/admin</url-pattern>
+  </servlet>
 
   <!-- mermaid → PNG (Kroki 위임). PDF/Word export 가 fetch 하는 same-origin 이미지 URL. -->
   <servlet name="md-share mermaid image" key="md-share-mermaid-image"

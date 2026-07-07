@@ -28,18 +28,22 @@ public class MarkdownMacro implements Macro {
 
     private final AttachmentManager attachmentManager;
     private final PageBuilderService pageBuilderService;
+    private final PluginConfig pluginConfig;
     private final MarkdownRenderer renderer;
     private final UrlMarkdownFetcher urlFetcher;
 
     public MarkdownMacro(AttachmentManager attachmentManager,
                          PageBuilderService pageBuilderService,
                          SettingsManager settingsManager,
+                         PluginConfig pluginConfig,
                          WhitelistService whitelistService,
                          OutboundWhitelist outboundWhitelist) {
         this.attachmentManager = attachmentManager;
         this.pageBuilderService = pageBuilderService;
+        this.pluginConfig = pluginConfig;
         // 절대 URL 이어야 PDF/Word export 의 이미지 fetch 가 확실히 동작한다.
-        this.renderer = new MarkdownRenderer(settingsManager.getGlobalSettings().getBaseUrl());
+        this.renderer = new MarkdownRenderer(
+                settingsManager.getGlobalSettings().getBaseUrl(), pluginConfig::getKrokiUrl);
         this.urlFetcher = new UrlMarkdownFetcher(whitelistService, outboundWhitelist);
     }
 
@@ -110,7 +114,7 @@ public class MarkdownMacro implements Macro {
     private String renderMarkdown(String markdown) {
         String html = renderer.render(markdown);
         // Kroki 미설정일 때만 클라이언트 JS 폴백 — 설정 시 mermaid 는 이미 img 다.
-        if (html.contains("language-mermaid") && !KrokiMermaid.enabled()) {
+        if (html.contains("language-mermaid") && pluginConfig.getKrokiUrl().isEmpty()) {
             requireMermaidResources();
         }
         return "<div class=\"md-share-markdown\">" + html + "</div>";

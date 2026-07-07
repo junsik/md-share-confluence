@@ -27,18 +27,6 @@ public final class KrokiMermaid {
     private KrokiMermaid() {
     }
 
-    public static String configuredKrokiUrl() {
-        String url = System.getProperty(KROKI_URL_PROPERTY, "").trim();
-        while (url.endsWith("/")) {
-            url = url.substring(0, url.length() - 1);
-        }
-        return url;
-    }
-
-    public static boolean enabled() {
-        return !configuredKrokiUrl().isEmpty();
-    }
-
     /** Kroki GET encoding: zlib deflate + base64url without padding. */
     public static String encode(String source) {
         byte[] input = source.getBytes(StandardCharsets.UTF_8);
@@ -54,13 +42,13 @@ public final class KrokiMermaid {
         return Base64.getUrlEncoder().withoutPadding().encodeToString(out.toByteArray());
     }
 
-    public static byte[] fetchPng(String payload) throws IOException {
-        String base = configuredKrokiUrl();
-        if (base.isEmpty()) {
-            throw new IOException("Kroki is not configured (" + KROKI_URL_PROPERTY + ")");
+    public static byte[] fetchPng(String krokiBaseUrl, String payload) throws IOException {
+        if (krokiBaseUrl == null || krokiBaseUrl.isEmpty()) {
+            throw new IOException("Kroki is not configured");
         }
         HttpURLConnection connection =
-                (HttpURLConnection) new URL(base + "/mermaid/png/" + payload).openConnection();
+                (HttpURLConnection) new URL(krokiBaseUrl + "/mermaid/png/" + payload).openConnection();
+        PluginTls.apply(connection);
         connection.setConnectTimeout(TIMEOUT_MILLIS);
         connection.setReadTimeout(TIMEOUT_MILLIS);
         connection.setRequestProperty("Accept", "image/png");

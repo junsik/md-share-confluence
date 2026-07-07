@@ -30,11 +30,9 @@ Two modes:
 - **Kroki (recommended)** — set a [Kroki](https://kroki.io) service URL and mermaid fences
   render server-side to PNG images served from the Confluence origin
   (`/plugins/servlet/md-share/mermaid/{encoded}.png`), so diagrams appear on pages **and in
-  PDF/Word export**. Configure in `setenv.sh`/`setenv.bat`:
-
-  ```
-  -Dmdshare.confluence.kroki-url=https://kroki.example.com
-  ```
+  PDF/Word export**. Configure it at **`/plugins/servlet/md-share/admin`** (Confluence
+  administrators only) — saved to Confluence settings and applied immediately, **no restart**.
+  The `-Dmdshare.confluence.kroki-url=...` system property still works as a fallback.
 
   The image URL embeds the diagram source (Kroki's deflate+base64url encoding), so the
   servlet is stateless and responses are immutable/cacheable.
@@ -62,6 +60,14 @@ Two modes:
     With neither configured, the `url` parameter is disabled.
   - Redirects are not followed, so an allowed host cannot bounce the fetch elsewhere.
 - Fetches have a 5s timeout and a 2 MB size cap; responses are cached for 5 minutes.
+
+### TLS trust without touching the JVM
+
+Old Confluence releases bundle a JRE whose `cacerts` predates the Let's Encrypt roots, so
+fetching a Let's Encrypt-protected md-share or Kroki fails with `PKIX path building failed`
+— and fixing the JVM truststore needs a restart. This plugin sidesteps that: its own HTTPS
+fetches use the JVM's default trust **plus bundled ISRG Root X1/X2**, scoped to the plugin
+only. No `keytool`, no restart.
 
 ### Expired documents
 
