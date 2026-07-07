@@ -23,7 +23,7 @@
   <properties>
     <confluence.version>6.1.2</confluence.version>
     <confluence.data.version>6.1.2</confluence.data.version>
-    <amps.version>6.2.11</amps.version>
+    <amps.version>6.3.21</amps.version>
     <atlassian.spring.scanner.version>1.2.13</atlassian.spring.scanner.version>
     <flexmark.version>0.62.2</flexmark.version>
     <atlassian.plugin.key>${project.groupId}.${project.artifactId}</atlassian.plugin.key>
@@ -38,6 +38,17 @@
       <artifactId>confluence</artifactId>
       <version>${confluence.version}</version>
       <scope>provided</scope>
+      <!-- Sun-licensed relics absent from public repos; not needed to compile a macro. -->
+      <exclusions>
+        <exclusion>
+          <groupId>javax.transaction</groupId>
+          <artifactId>jta</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>javax.activation</groupId>
+          <artifactId>activation</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>com.atlassian.plugin</groupId>
@@ -55,6 +66,12 @@
       <groupId>javax.inject</groupId>
       <artifactId>javax.inject</artifactId>
       <version>1</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.atlassian.plugins</groupId>
+      <artifactId>atlassian-whitelist-api-plugin</artifactId>
+      <version>3.0.2</version>
       <scope>provided</scope>
     </dependency>
 
@@ -86,13 +103,20 @@
       <version>4.13.2</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <version>2.28.2</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>
     <plugins>
       <plugin>
         <groupId>com.atlassian.maven.plugins</groupId>
-        <artifactId>confluence-maven-plugin</artifactId>
+        <!-- AMPS 6.x artifact name; the confluence-maven-plugin rename came with AMPS 8 -->
+        <artifactId>maven-confluence-plugin</artifactId>
         <version>${amps.version}</version>
         <extensions>true</extensions>
         <configuration>

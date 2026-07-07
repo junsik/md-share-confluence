@@ -26,16 +26,21 @@ match native Confluence styling.
 
 - **Raw HTML in Markdown is escaped** — a shared document can never inject markup into
   your Confluence page.
-- **URL fetching is fail-closed.** Out of the box the `url` parameter is disabled.
-  Enable it by allowlisting URL prefixes via a system property in `setenv.sh`
-  (or `setenv.bat`):
+- **URL fetching is fail-closed** and honours the built-in Confluence whitelist:
+  - **Primary**: Administration → Security → **Whitelist** — add your md-share domain
+    (e.g. `https://md-share.example.com/*`). No restart, managed in the admin UI,
+    shared with the other whitelist-aware macros (RSS, widgets).
+  - **Fallback**: if an admin has *turned the whitelist off*, Confluence treats every
+    outbound URL as allowed — this macro deliberately does **not** inherit that
+    (it would become an SSRF proxy). Instead it falls back to an explicit prefix list
+    via a system property in `setenv.sh`/`setenv.bat`:
 
-  ```
-  -Dmdshare.confluence.allowed-url-prefixes=https://md-share.example.com/
-  ```
+    ```
+    -Dmdshare.confluence.allowed-url-prefixes=https://md-share.example.com/
+    ```
 
-  Anything not matching an allowed prefix is refused, and redirects are not followed,
-  so the macro cannot be used as an SSRF proxy.
+    With neither configured, the `url` parameter is disabled.
+  - Redirects are not followed, so an allowed host cannot bounce the fetch elsewhere.
 - Fetches have a 5s timeout and a 2 MB size cap; responses are cached for 5 minutes.
 
 ### Expired documents

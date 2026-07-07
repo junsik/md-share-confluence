@@ -1,9 +1,13 @@
 package io.github.junsik.mdshare.confluence;
 
+import com.atlassian.plugins.whitelist.OutboundWhitelist;
+import com.atlassian.plugins.whitelist.WhitelistService;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -12,11 +16,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Fetches Markdown from an allowlisted URL.
+ * Fetches Markdown from an allowed URL.
  *
- * The allowlist is fail-closed: with no configured prefixes the url parameter
- * is disabled entirely, because a URL-fetching macro is otherwise an SSRF
- * proxy running inside the Confluence server.
+ * Allow decisions come from the Confluence admin Whitelist (Security →
+ * Whitelist) when that feature is enabled. When an admin has turned the
+ * whitelist off, Confluence treats every outbound URL as allowed — for this
+ * macro that would silently become an SSRF proxy, so we fall back to an
+ * explicit fail-closed system-property prefix list instead.
  */
 public class UrlMarkdownFetcher {
 
@@ -26,7 +32,14 @@ public class UrlMarkdownFetcher {
     private static final int MAX_BYTES = 2 * 1024 * 1024;
     private static final int TIMEOUT_MILLIS = 5_000;
 
+    private final WhitelistService whitelistService;
+    private final OutboundWhitelist outboundWhitelist;
     private final TtlCache cache = new TtlCache(5 * 60 * 1000L);
+
+    public UrlMarkdownFetcher(WhitelistService whitelistService, OutboundWhitelist outboundWhitelist) {
+        this.whitelistService = whitelistService;
+        this.outboundWhitelist = outboundWhitelist;
+    }
 
     public static final class FetchResult {
         public final String markdown;
@@ -67,22 +80,33 @@ public class UrlMarkdownFetcher {
         return prefixes;
     }
 
-    public FetchResult fetch(String rawUrl) {
+    /** Returns null when the URL is allowed, otherwise a user-facing error message. */
+    String denialReason(String url) {
+        if (whitelistService != null && outboundWhitelist != null && whitelistService.isWhitelistEnabled()) {
+            if (outboundWhitelist.isAllowed(URI.create(url))) {
+                return null;
+            }
+            return "URL is not allowed by the Confluence whitelist (Administration → Security → Whitelist): " + url;
+        }
         List<String> prefixes = allowedPrefixes();
         if (prefixes.isEmpty()) {
-            return FetchResult.failed("URL rendering is disabled. Set the system property "
-                    + ALLOWLIST_PROPERTY + " to a comma-separated list of allowed URL prefixes.");
+            return "URL rendering is disabled. Enable the Confluence whitelist and add the md-share domain, "
+                    + "or set the system property " + ALLOWLIST_PROPERTY
+                    + " to a comma-separated list of allowed URL prefixes.";
         }
-        String url = normalize(rawUrl);
-        boolean allowed = false;
         for (String prefix : prefixes) {
             if (url.startsWith(prefix)) {
-                allowed = true;
-                break;
+                return null;
             }
         }
-        if (!allowed) {
-            return FetchResult.failed("URL is not on the allowlist: " + url);
+        return "URL is not on the allowlist: " + url;
+    }
+
+    public FetchResult fetch(String rawUrl) {
+        String url = normalize(rawUrl);
+        String denial = denialReason(url);
+        if (denial != null) {
+            return FetchResult.failed(denial);
         }
 
         String cached = cache.get(url);
