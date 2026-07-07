@@ -4,11 +4,23 @@
 (function () {
   "use strict";
 
+  function buildParamDiv() {
+    try {
+      var markup = Confluence.Templates.MacroBrowser.macroParameterSelect().toString();
+      var div = AJS.$(markup);
+      if (div.find("select").length) {
+        return div;
+      }
+    } catch (e) {
+      // template unavailable — fall through to manual markup
+    }
+    return AJS.$('<div class="macro-param-div"><select class="macro-param-select"></select></div>');
+  }
+
   function mdShareAttachmentField(param, options) {
-    var paramDiv = AJS.$(
-      '<div class="macro-param-div"><select class="macro-param-select"></select></div>'
-    );
+    var paramDiv = buildParamDiv();
     var select = paramDiv.find("select");
+    select.empty();
     select.append(AJS.$("<option></option>").attr("value", "").text(""));
 
     function hasOption(value) {
@@ -42,16 +54,33 @@
       });
     }
 
-    return {
-      paramDiv: paramDiv,
-      getValue: function () {
-        return select.val() || "";
-      },
-      setValue: function (value) {
-        ensureOption(value);
+    // Macro browser expects the AJS.MacroBrowser.Field contract (paramDiv + input,
+    // it calls field.input.addClass(...)); build it the official way when possible.
+    var field;
+    if (AJS.MacroBrowser && typeof AJS.MacroBrowser.Field === "function") {
+      field = AJS.MacroBrowser.Field(paramDiv, select, options);
+    } else {
+      field = {
+        paramDiv: paramDiv,
+        input: select,
+        getValue: function () {
+          return select.val() || "";
+        },
+        setValue: function (value) {
+          select.val(value);
+        }
+      };
+    }
+    var baseSetValue = field.setValue;
+    field.setValue = function (value) {
+      ensureOption(value);
+      if (baseSetValue) {
+        baseSetValue.call(field, value);
+      } else {
         select.val(value);
       }
     };
+    return field;
   }
 
   AJS.toInit(function () {

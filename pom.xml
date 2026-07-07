@@ -6,7 +6,7 @@
 
   <groupId>io.github.junsik</groupId>
   <artifactId>md-share-confluence</artifactId>
-  <version>0.1.4</version>
+  <version>0.1.5</version>
   <packaging>atlassian-plugin</packaging>
 
   <name>md-share for Confluence</name>
