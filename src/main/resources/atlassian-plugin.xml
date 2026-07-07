@@ -18,6 +18,12 @@
     <context>preview</context>
   </web-resource>
 
+  <web-resource key="md-share-macro-browser" name="md-share macro browser field">
+    <resource type="download" name="md-share-macro-browser.js" location="/js/md-share-macro-browser.js"/>
+    <dependency>com.atlassian.confluence.editor:macro-browser-js</dependency>
+    <context>macro-browser</context>
+  </web-resource>
+
   <xhtml-macro name="md-share" class="io.github.junsik.mdshare.confluence.MarkdownMacro" key="md-share-macro">
     <description key="io.github.junsik.md-share-confluence.md-share.desc"/>
     <category name="formatting"/>
