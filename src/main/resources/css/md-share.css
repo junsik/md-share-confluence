@@ -28,6 +28,15 @@
   padding-left: 12px;
 }
 
+.md-share-mermaid {
+  margin: 8px 0;
+}
+
+.md-share-mermaid svg {
+  max-width: 100%;
+  height: auto;
+}
+
 .md-share-error {
   background: #fff0f0;
   border: 1px solid #e0a0a0;

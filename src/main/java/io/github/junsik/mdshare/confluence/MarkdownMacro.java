@@ -8,6 +8,7 @@ import com.atlassian.confluence.pages.Attachment;
 import com.atlassian.confluence.pages.AttachmentManager;
 import com.atlassian.plugins.whitelist.OutboundWhitelist;
 import com.atlassian.plugins.whitelist.WhitelistService;
+import com.atlassian.webresource.api.assembler.PageBuilderService;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -22,14 +23,19 @@ import java.util.Map;
  */
 public class MarkdownMacro implements Macro {
 
+    private static final String MERMAID_RESOURCE = "io.github.junsik.md-share-confluence:md-share-mermaid";
+
     private final AttachmentManager attachmentManager;
+    private final PageBuilderService pageBuilderService;
     private final MarkdownRenderer renderer = new MarkdownRenderer();
     private final UrlMarkdownFetcher urlFetcher;
 
     public MarkdownMacro(AttachmentManager attachmentManager,
+                         PageBuilderService pageBuilderService,
                          WhitelistService whitelistService,
                          OutboundWhitelist outboundWhitelist) {
         this.attachmentManager = attachmentManager;
+        this.pageBuilderService = pageBuilderService;
         this.urlFetcher = new UrlMarkdownFetcher(whitelistService, outboundWhitelist);
     }
 
@@ -98,7 +104,20 @@ public class MarkdownMacro implements Macro {
     }
 
     private String renderMarkdown(String markdown) {
-        return "<div class=\"md-share-markdown\">" + renderer.render(markdown) + "</div>";
+        String html = renderer.render(markdown);
+        if (html.contains("language-mermaid")) {
+            requireMermaidResources();
+        }
+        return "<div class=\"md-share-markdown\">" + html + "</div>";
+    }
+
+    /** mermaid 번들(2.7MB)은 다이어그램이 실제로 있는 페이지 뷰에서만 로드한다. */
+    private void requireMermaidResources() {
+        try {
+            pageBuilderService.assembler().resources().requireWebResource(MERMAID_RESOURCE);
+        } catch (RuntimeException e) {
+            // PDF/Word export 같은 비페이지 컨텍스트 — 다이어그램은 코드 블록으로 남는다.
+        }
     }
 
     private static String errorBox(String message) {

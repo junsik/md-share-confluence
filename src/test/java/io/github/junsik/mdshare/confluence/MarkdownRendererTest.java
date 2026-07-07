@@ -10,10 +10,12 @@ public class MarkdownRendererTest {
     private final MarkdownRenderer renderer = new MarkdownRenderer();
 
     @Test
-    public void rendersGfmTableWithConfluenceClass() {
+    public void rendersGfmTableWithConfluenceClasses() {
         String html = renderer.render("| a | b |\n| --- | --- |\n| 1 | 2 |\n");
         assertTrue(html.contains("<table class=\"confluenceTable\">"));
-        assertTrue(html.contains("<td>1</td>"));
+        // PDF/Word export styles tables only via these cell classes.
+        assertTrue(html.contains("<th class=\"confluenceTh\">a</th>"));
+        assertTrue(html.contains("<td class=\"confluenceTd\">1</td>"));
     }
 
     @Test

@@ -9,6 +9,7 @@
   <resource type="i18n" name="i18n" location="mdshare"/>
 
   <component-import key="attachmentManager" interface="com.atlassian.confluence.pages.AttachmentManager"/>
+  <component-import key="pageBuilderService" interface="com.atlassian.webresource.api.assembler.PageBuilderService"/>
   <component-import key="whitelistService" interface="com.atlassian.plugins.whitelist.WhitelistService"/>
   <component-import key="outboundWhitelist" interface="com.atlassian.plugins.whitelist.OutboundWhitelist"/>
 
@@ -16,6 +17,14 @@
     <resource type="download" name="md-share.css" location="/css/md-share.css"/>
     <context>viewcontent</context>
     <context>preview</context>
+  </web-resource>
+
+  <!-- mermaid 번들(2.7MB)은 context 로드가 아니라 매크로가 mermaid 블록을 렌더링할 때만
+       PageBuilderService.requireWebResource 로 요구된다. 리소스 순서 중요: AMD 가드 → mermaid → init. -->
+  <web-resource key="md-share-mermaid" name="md-share mermaid renderer">
+    <resource type="download" name="md-share-amd-guard.js" location="/js/md-share-amd-guard.js"/>
+    <resource type="download" name="mermaid.min.js" location="/js/mermaid.min.js"/>
+    <resource type="download" name="md-share-mermaid.js" location="/js/md-share-mermaid.js"/>
   </web-resource>
 
   <web-resource key="md-share-macro-browser" name="md-share macro browser field">
