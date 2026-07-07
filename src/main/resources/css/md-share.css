@@ -1,0 +1,37 @@
+.md-share-markdown table {
+  border-collapse: collapse;
+  margin: 8px 0;
+}
+
+.md-share-markdown table th,
+.md-share-markdown table td {
+  border: 1px solid #ddd;
+  padding: 4px 8px;
+}
+
+.md-share-markdown table th {
+  background: #f4f5f7;
+}
+
+.md-share-markdown pre {
+  background: #f4f5f7;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  padding: 8px 12px;
+  overflow-x: auto;
+}
+
+.md-share-markdown blockquote {
+  border-left: 3px solid #ddd;
+  color: #555;
+  margin-left: 0;
+  padding-left: 12px;
+}
+
+.md-share-error {
+  background: #fff0f0;
+  border: 1px solid #e0a0a0;
+  border-radius: 3px;
+  color: #8a2a2a;
+  padding: 8px 12px;
+}

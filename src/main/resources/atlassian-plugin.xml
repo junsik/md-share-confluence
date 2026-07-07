@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<atlassian-plugin key="${atlassian.plugin.key}" name="${project.name}" plugins-version="2">
+  <plugin-info>
+    <description>${project.description}</description>
+    <version>${project.version}</version>
+    <vendor name="junsik" url="https://github.com/junsik/md-share-confluence"/>
+  </plugin-info>
+
+  <resource type="i18n" name="i18n" location="mdshare"/>
+
+  <web-resource key="md-share-styles" name="md-share styles">
+    <resource type="download" name="md-share.css" location="/css/md-share.css"/>
+    <context>viewcontent</context>
+    <context>preview</context>
+  </web-resource>
+
+  <xhtml-macro name="md-share" class="io.github.junsik.mdshare.confluence.MarkdownMacro" key="md-share-macro">
+    <description key="io.github.junsik.md-share-confluence.md-share.desc"/>
+    <category name="formatting"/>
+    <parameters>
+      <parameter name="attachment" type="attachment"/>
+      <parameter name="url" type="string"/>
+    </parameters>
+  </xhtml-macro>
+</atlassian-plugin>
