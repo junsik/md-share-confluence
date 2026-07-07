@@ -8,6 +8,10 @@
 
   <resource type="i18n" name="i18n" location="mdshare"/>
 
+  <component-import key="attachmentManager" interface="com.atlassian.confluence.pages.AttachmentManager"/>
+  <component-import key="whitelistService" interface="com.atlassian.plugins.whitelist.WhitelistService"/>
+  <component-import key="outboundWhitelist" interface="com.atlassian.plugins.whitelist.OutboundWhitelist"/>
+
   <web-resource key="md-share-styles" name="md-share styles">
     <resource type="download" name="md-share.css" location="/css/md-share.css"/>
     <context>viewcontent</context>

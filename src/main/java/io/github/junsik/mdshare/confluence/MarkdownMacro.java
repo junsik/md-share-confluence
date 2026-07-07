@@ -6,8 +6,6 @@ import com.atlassian.confluence.macro.Macro;
 import com.atlassian.confluence.macro.MacroExecutionException;
 import com.atlassian.confluence.pages.Attachment;
 import com.atlassian.confluence.pages.AttachmentManager;
-import com.atlassian.plugin.spring.scanner.annotation.component.Scanned;
-import com.atlassian.plugin.spring.scanner.annotation.imports.ComponentImport;
 import com.atlassian.plugins.whitelist.OutboundWhitelist;
 import com.atlassian.plugins.whitelist.WhitelistService;
 
@@ -22,16 +20,15 @@ import java.util.Map;
  * attachment, an allowlisted URL (md-share share links are normalised to
  * their raw endpoint), or the macro body.
  */
-@Scanned
 public class MarkdownMacro implements Macro {
 
     private final AttachmentManager attachmentManager;
     private final MarkdownRenderer renderer = new MarkdownRenderer();
     private final UrlMarkdownFetcher urlFetcher;
 
-    public MarkdownMacro(@ComponentImport AttachmentManager attachmentManager,
-                         @ComponentImport WhitelistService whitelistService,
-                         @ComponentImport OutboundWhitelist outboundWhitelist) {
+    public MarkdownMacro(AttachmentManager attachmentManager,
+                         WhitelistService whitelistService,
+                         OutboundWhitelist outboundWhitelist) {
         this.attachmentManager = attachmentManager;
         this.urlFetcher = new UrlMarkdownFetcher(whitelistService, outboundWhitelist);
     }
