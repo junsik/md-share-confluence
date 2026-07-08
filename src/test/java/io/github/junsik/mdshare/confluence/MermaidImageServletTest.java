@@ -20,6 +20,14 @@ public class MermaidImageServletTest {
     }
 
     @Test
+    public void extractsPayloadFromFullRequestUri() {
+        assertEquals("eNpLy8kv",
+                MermaidImageServlet.extractPayload("/plugins/servlet/md-share/mermaid/eNpLy8kv.png"));
+        assertEquals("eNpLy8kv",
+                MermaidImageServlet.extractPayload("/confluence/plugins/servlet/md-share/mermaid/eNpLy8kv.png"));
+    }
+
+    @Test
     public void rejectsUnexpectedPaths() {
         assertNull(MermaidImageServlet.extractPayload(null));
         assertNull(MermaidImageServlet.extractPayload("/md-share/mermaid/"));

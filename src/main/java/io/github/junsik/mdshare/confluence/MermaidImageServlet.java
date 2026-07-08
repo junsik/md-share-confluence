@@ -32,16 +32,23 @@ public class MermaidImageServlet extends HttpServlet {
         this.config = config;
     }
 
-    static String extractPayload(String pathInfo) {
-        Matcher matcher = PATH.matcher(pathInfo == null ? "" : pathInfo);
+    static String extractPayload(String path) {
+        Matcher matcher = PATH.matcher(path == null ? "" : path);
         return matcher.find() ? matcher.group(1) : null;
     }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        String payload = extractPayload(request.getPathInfo());
+        // 디스패처마다 pathInfo 를 다르게 잘라 주므로(전체 경로/패턴 이후만/null),
+        // 항상 원형이 보존되는 requestURI 를 우선으로 payload 를 찾는다.
+        String payload = extractPayload(request.getRequestURI());
         if (payload == null) {
-            response.sendError(HttpServletResponse.SC_NOT_FOUND);
+            payload = extractPayload(request.getPathInfo());
+        }
+        if (payload == null) {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND,
+                    "no diagram payload in path (md-share v0.3.2 saw uri=" + request.getRequestURI()
+                            + ", pathInfo=" + request.getPathInfo() + ")");
             return;
         }
         byte[] png = cache.get(payload);
