@@ -42,16 +42,16 @@ public final class KrokiMermaid {
         return Base64.getUrlEncoder().withoutPadding().encodeToString(out.toByteArray());
     }
 
-    public static byte[] fetchPng(String krokiBaseUrl, String payload) throws IOException {
+    public static byte[] fetch(String krokiBaseUrl, String format, String payload) throws IOException {
         if (krokiBaseUrl == null || krokiBaseUrl.isEmpty()) {
             throw new IOException("Kroki is not configured");
         }
-        HttpURLConnection connection =
-                (HttpURLConnection) new URL(krokiBaseUrl + "/mermaid/png/" + payload).openConnection();
+        HttpURLConnection connection = (HttpURLConnection)
+                new URL(krokiBaseUrl + "/mermaid/" + format + "/" + payload).openConnection();
         PluginTls.apply(connection);
         connection.setConnectTimeout(TIMEOUT_MILLIS);
         connection.setReadTimeout(TIMEOUT_MILLIS);
-        connection.setRequestProperty("Accept", "image/png");
+        connection.setRequestProperty("Accept", "svg".equals(format) ? "image/svg+xml" : "image/png");
         int status = connection.getResponseCode();
         if (status != 200) {
             throw new IOException("Kroki returned HTTP " + status);

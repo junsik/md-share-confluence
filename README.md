@@ -40,6 +40,48 @@ Two modes:
   browser on page view (loaded only when a diagram is present). PDF/Word export keeps the
   code block in this mode.
 
+With Kroki, the web view uses SVG (vector — crisp at any width) and PDF/Word export uses PNG
+(old export renderers cannot draw SVG). Images are capped at the content width.
+
+#### Authoring tips for well-sized diagrams
+
+Diagram size is mostly decided when the markdown is written, not by the renderer:
+
+- **Pick the direction for the shape of the flow** — `flowchart LR` fits linear pipelines to
+  the page width; `TD` grows vertically with every step. Linear step chains read best as `LR`.
+- **Short labels, data in tables** — node size follows label length. Put structure in the
+  diagram and numbers in a table next to it, instead of `C["collect: 409 items"]`.
+- **Two small diagrams beat one dense one** — split at a natural boundary (e.g.
+  collect→verdict and verdict→follow-up) when branches pile up.
+- **Fine-tune spacing per diagram** with an init directive:
+
+  ```
+  %%{init: {'flowchart': {'nodeSpacing': 30, 'rankSpacing': 30}}}%%
+  ```
+
+#### Copy-paste prompt for AI markdown generators
+
+Most markdown that lands here is written by an AI (report agents, coding assistants).
+Paste this block into your AI tool's instructions so the output renders well everywhere
+(md-share web view, this Confluence macro, and PDF/Word export):
+
+```text
+You are writing a Markdown document that will be rendered as a web page and
+exported to PDF. Follow these rules:
+
+- Start with a single `#` heading; it becomes the document title. Include
+  the subject and time range in it.
+- Use GitHub-flavored Markdown only: tables, task lists, and fenced code
+  blocks with a language tag. Never use raw HTML — it is stripped.
+- Diagrams are mermaid fenced code blocks. Diagrams carry structure; numbers
+  belong in tables next to them. Keep node labels short (no metrics inside
+  node labels).
+- Linear step flows must be `flowchart LR` (horizontal). Use `TD` only for
+  shallow trees. If a diagram would exceed ~10 nodes or two branch levels,
+  split it into two diagrams at a natural boundary instead.
+- Always state timezones next to timestamps.
+```
+
 ### Security model
 
 - **Raw HTML in Markdown is escaped** — a shared document can never inject markup into

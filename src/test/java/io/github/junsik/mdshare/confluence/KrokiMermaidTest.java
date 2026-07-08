@@ -29,12 +29,21 @@ public class KrokiMermaidTest {
     }
 
     @Test
-    public void mermaidFenceBecomesServletImageWhenKrokiConfigured() {
+    public void mermaidFenceBecomesSvgImageForWebView() {
         String html = new MarkdownRenderer("https://wiki.example.com", () -> "https://kroki.example.com")
                 .render("```mermaid\n" + DIAGRAM + "```\n");
         assertTrue(html.contains("<img src=\"https://wiki.example.com/plugins/servlet/md-share/mermaid/"));
+        assertTrue(html.contains(".svg\""));
         assertTrue(html.contains("class=\"md-share-mermaid\""));
         assertFalse(html.contains("language-mermaid"));
+    }
+
+    @Test
+    public void mermaidFenceBecomesPngImageForExport() {
+        String html = new MarkdownRenderer("https://wiki.example.com", () -> "https://kroki.example.com")
+                .render("```mermaid\n" + DIAGRAM + "```\n", "png");
+        assertTrue(html.contains(".png\""));
+        assertFalse(html.contains(".svg\""));
     }
 
     @Test

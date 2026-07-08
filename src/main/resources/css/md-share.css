@@ -30,6 +30,8 @@
 
 .md-share-mermaid {
   margin: 8px 0;
+  max-width: 100%;
+  height: auto;
 }
 
 .md-share-mermaid svg {

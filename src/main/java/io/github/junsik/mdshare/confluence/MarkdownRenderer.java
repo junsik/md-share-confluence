@@ -35,6 +35,9 @@ public final class MarkdownRenderer {
 
     private final Parser parser;
     private final HtmlRenderer renderer;
+    // 웹 뷰는 SVG(벡터, 축소돼도 선명), PDF/Word export 는 PNG(구형 export 렌더러가
+    // SVG 를 못 그림) — 호출별로 다르므로 render 호출 동안만 유효한 값으로 전달한다.
+    private final ThreadLocal<String> mermaidImageFormat = ThreadLocal.withInitial(() -> "svg");
 
     public MarkdownRenderer() {
         this("", () -> "");
@@ -61,7 +64,7 @@ public final class MarkdownRenderer {
                         return MarkdownRenderer::setConfluenceTableAttributes;
                     }
                 })
-                .nodeRendererFactory(new MermaidNodeRenderer.Factory(baseUrl, krokiUrlSupplier))
+                .nodeRendererFactory(new MermaidNodeRenderer.Factory(baseUrl, krokiUrlSupplier, mermaidImageFormat::get))
                 .build();
     }
 
@@ -74,10 +77,14 @@ public final class MarkdownRenderer {
 
         private final String baseUrl;
         private final java.util.function.Supplier<String> krokiUrlSupplier;
+        private final java.util.function.Supplier<String> formatSupplier;
 
-        private MermaidNodeRenderer(String baseUrl, java.util.function.Supplier<String> krokiUrlSupplier) {
+        private MermaidNodeRenderer(String baseUrl,
+                                    java.util.function.Supplier<String> krokiUrlSupplier,
+                                    java.util.function.Supplier<String> formatSupplier) {
             this.baseUrl = baseUrl == null ? "" : baseUrl.replaceAll("/+$", "");
             this.krokiUrlSupplier = krokiUrlSupplier;
+            this.formatSupplier = formatSupplier;
         }
 
         @Override
@@ -94,8 +101,9 @@ public final class MarkdownRenderer {
                 return;
             }
             String payload = KrokiMermaid.encode(node.getContentChars().toString());
+            String format = "png".equals(formatSupplier.get()) ? "png" : "svg";
             html.line();
-            html.attr("src", baseUrl + "/plugins/servlet/md-share/mermaid/" + payload + ".png");
+            html.attr("src", baseUrl + "/plugins/servlet/md-share/mermaid/" + payload + "." + format);
             html.attr("class", "md-share-mermaid");
             html.attr("alt", "mermaid diagram");
             html.withAttr().tagVoid("img");
@@ -105,15 +113,19 @@ public final class MarkdownRenderer {
         static final class Factory implements DelegatingNodeRendererFactory {
             private final String baseUrl;
             private final java.util.function.Supplier<String> krokiUrlSupplier;
+            private final java.util.function.Supplier<String> formatSupplier;
 
-            Factory(String baseUrl, java.util.function.Supplier<String> krokiUrlSupplier) {
+            Factory(String baseUrl,
+                    java.util.function.Supplier<String> krokiUrlSupplier,
+                    java.util.function.Supplier<String> formatSupplier) {
                 this.baseUrl = baseUrl;
                 this.krokiUrlSupplier = krokiUrlSupplier;
+                this.formatSupplier = formatSupplier;
             }
 
             @Override
             public NodeRenderer apply(DataHolder options) {
-                return new MermaidNodeRenderer(baseUrl, krokiUrlSupplier);
+                return new MermaidNodeRenderer(baseUrl, krokiUrlSupplier, formatSupplier);
             }
 
             @Override
@@ -137,6 +149,15 @@ public final class MarkdownRenderer {
     }
 
     public String render(String markdown) {
-        return renderer.render(parser.parse(markdown == null ? "" : markdown));
+        return render(markdown, "svg");
+    }
+
+    public String render(String markdown, String mermaidFormat) {
+        mermaidImageFormat.set("png".equals(mermaidFormat) ? "png" : "svg");
+        try {
+            return renderer.render(parser.parse(markdown == null ? "" : markdown));
+        } finally {
+            mermaidImageFormat.remove();
+        }
     }
 }

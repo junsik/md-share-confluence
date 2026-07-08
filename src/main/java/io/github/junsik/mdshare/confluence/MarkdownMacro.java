@@ -53,23 +53,30 @@ public class MarkdownMacro implements Macro {
         String attachmentName = trimToNull(parameters.get("attachment"));
         String url = trimToNull(parameters.get("url"));
 
+        String mermaidFormat = mermaidFormatFor(context);
         if (attachmentName != null) {
-            return renderAttachment(attachmentName, context);
+            return renderAttachment(attachmentName, context, mermaidFormat);
         }
         if (url != null) {
             UrlMarkdownFetcher.FetchResult result = urlFetcher.fetch(url);
             if (result.error != null) {
                 return errorBox(result.error);
             }
-            return renderMarkdown(result.markdown);
+            return renderMarkdown(result.markdown, mermaidFormat);
         }
         if (body != null && !body.trim().isEmpty()) {
-            return renderMarkdown(body);
+            return renderMarkdown(body, mermaidFormat);
         }
         return errorBox("Nothing to render: provide a Markdown attachment, an md-share URL, or a macro body.");
     }
 
-    private String renderAttachment(String attachmentName, ConversionContext context) {
+    /** PDF/Word export 렌더러는 SVG 를 못 그리므로 그 경로만 PNG 를 쓴다. */
+    private static String mermaidFormatFor(ConversionContext context) {
+        String outputType = context == null ? "" : String.valueOf(context.getOutputType());
+        return ("pdf".equalsIgnoreCase(outputType) || "word".equalsIgnoreCase(outputType)) ? "png" : "svg";
+    }
+
+    private String renderAttachment(String attachmentName, ConversionContext context, String mermaidFormat) {
         ContentEntityObject entity = context.getEntity();
         if (entity == null) {
             return errorBox("The attachment parameter only works on pages and blog posts.");
@@ -86,7 +93,7 @@ public class MarkdownMacro implements Macro {
             while ((read = in.read(buffer)) != -1) {
                 out.write(buffer, 0, read);
             }
-            return renderMarkdown(new String(out.toByteArray(), StandardCharsets.UTF_8));
+            return renderMarkdown(new String(out.toByteArray(), StandardCharsets.UTF_8), mermaidFormat);
         } catch (IOException e) {
             return errorBox("Failed to read attachment: " + attachmentName);
         }
@@ -111,8 +118,8 @@ public class MarkdownMacro implements Macro {
         return " — markdown attachments on this page: " + names;
     }
 
-    private String renderMarkdown(String markdown) {
-        String html = renderer.render(markdown);
+    private String renderMarkdown(String markdown, String mermaidFormat) {
+        String html = renderer.render(markdown, mermaidFormat);
         // Kroki 미설정일 때만 클라이언트 JS 폴백 — 설정 시 mermaid 는 이미 img 다.
         if (html.contains("language-mermaid") && pluginConfig.getKrokiUrl().isEmpty()) {
             requireMermaidResources();
