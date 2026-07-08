@@ -8,6 +8,10 @@ people paste the link into Confluence, and the page shows the rendered document.
 Targets **Confluence Server 6.1.x** (Java 8 / P2 plugin). Newer 6.x/7.x will likely work
 but are untested.
 
+한국어 사용 가이드: **[docs/USAGE.ko.md](docs/USAGE.ko.md)**
+
+![macro dialog with attachment picker and live preview](docs/images/macro-dialog.png)
+
 ## The `{md-share}` macro
 
 One macro, three sources (priority order):
