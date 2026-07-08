@@ -20,7 +20,9 @@ import java.util.regex.Pattern;
  */
 public class MermaidImageServlet extends HttpServlet {
 
-    private static final Pattern PATH = Pattern.compile("^/mermaid/([A-Za-z0-9_-]+)\\.png$");
+    // Confluence 의 플러그인 서블릿 디스패처는 pathInfo 로 /plugins/servlet 뒤 전체 경로를
+    // 넘긴다 (url-pattern 기준으로 잘라주지 않음) — 끝부분만 앵커해서 두 형태 모두 받는다.
+    private static final Pattern PATH = Pattern.compile("/mermaid/([A-Za-z0-9_-]+)\\.png$");
     private static final int MAX_CACHE_ENTRIES = 256;
 
     private final PluginConfig config;
@@ -30,14 +32,18 @@ public class MermaidImageServlet extends HttpServlet {
         this.config = config;
     }
 
+    static String extractPayload(String pathInfo) {
+        Matcher matcher = PATH.matcher(pathInfo == null ? "" : pathInfo);
+        return matcher.find() ? matcher.group(1) : null;
+    }
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        Matcher matcher = PATH.matcher(request.getPathInfo() == null ? "" : request.getPathInfo());
-        if (!matcher.matches()) {
+        String payload = extractPayload(request.getPathInfo());
+        if (payload == null) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
             return;
         }
-        String payload = matcher.group(1);
         byte[] png = cache.get(payload);
         if (png == null) {
             try {
