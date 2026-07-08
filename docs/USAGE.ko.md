@@ -76,3 +76,4 @@ AI 도구 지침에 넣어 주세요.
 | "The shared document was not found... expired" | md-share 문서의 TTL 만료 — 영구 보존이 필요하면 `.md`를 페이지 첨부로 올려 attachment 소스 사용 |
 | 매크로가 검색에 안 나옴 | 편집기 하드 리프레시(Ctrl+F5) 후 "md" 또는 "markdown"으로 검색 |
 | PDF에서 mermaid가 코드로 나옴 | Kroki URL 미설정 — 관리자 설정에서 등록 |
+| PDF에서 코드 블록의 한글만 사라짐 | PDF 렌더러의 monospace 기본 폰트(Courier)에 한글 글리프가 없음. ① 관리자 → PDF 내보내기 언어 지원에 한글 TTF 설치 확인, ② 관리자 → PDF 스타일시트에 `pre, code, tt { font-family: ConfluenceInstalledFont, Courier, monospace; }` 추가 |
