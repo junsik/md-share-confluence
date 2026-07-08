@@ -57,6 +57,10 @@ Diagram size is mostly decided when the markdown is written, not by the renderer
   diagram and numbers in a table next to it, instead of `C["collect: 409 items"]`.
 - **Two small diagrams beat one dense one** — split at a natural boundary (e.g.
   collect→verdict and verdict→follow-up) when branches pile up.
+- **Quote labels that contain special characters** — `(){}[]` are node-shape tokens in
+  mermaid, so an unquoted edge label like `-->|uses ${var}|` is a parse error
+  (`got 'DIAMOND_START'`). Write `-->|"uses ${var}"|`; node labels written as `["..."]`
+  are already safe.
 - **Fine-tune spacing per diagram** with an init directive:
 
   ```
@@ -83,6 +87,9 @@ exported to PDF. Follow these rules:
 - Linear step flows must be `flowchart LR` (horizontal). Use `TD` only for
   shallow trees. If a diagram would exceed ~10 nodes or two branch levels,
   split it into two diagrams at a natural boundary instead.
+- In mermaid, wrap every label containing special characters (`(){}[]`, `${...}`)
+  in double quotes — node labels as `A["label (detail)"]`, edge labels as
+  `A -->|"uses ${var}"| B`. Unquoted labels with these characters fail to parse.
 - Always state timezones next to timestamps.
 ```
 
