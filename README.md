@@ -27,6 +27,36 @@ Rendering is server-side with [flexmark-java](https://github.com/vladsch/flexmar
 `confluenceTable`/`confluenceTh`/`confluenceTd` classes, so they match Confluence styling
 on pages **and in PDF/Word export**.
 
+### Inserting the macro without the macro browser
+
+- **Editor autocomplete** — type `{` in the editor, then `md-share` (or the `markdown`
+  alias) and hit Enter. This is the fastest keyboard path; wiki markup typed straight
+  into the rich-text editor stays plain text (Confluence 4+ stores pages as XHTML).
+- **Insert → Wiki Markup** (Ctrl+Shift+D) — converts wiki markup wholesale. Note the
+  closing tag repeats the name with **no slash** (`{md-share}`, not `{/md-share}`):
+
+  ```
+  {md-share:attachment=report.md}
+
+  {md-share:url=https://md-share.example.com/d/abc123}
+
+  {md-share}
+  # markdown written in the body
+  {md-share}
+  ```
+- **Storage format** (REST API / automation) — the body is `ac:plain-text-body` (the
+  macro declares `BodyType.PLAIN_TEXT` so Confluence hands the markdown over unrendered):
+
+  ```xml
+  <ac:structured-macro ac:name="md-share">
+    <ac:parameter ac:name="url">https://md-share.example.com/d/abc123</ac:parameter>
+  </ac:structured-macro>
+
+  <ac:structured-macro ac:name="md-share">
+    <ac:plain-text-body><![CDATA[# markdown body]]></ac:plain-text-body>
+  </ac:structured-macro>
+  ```
+
 ### Mermaid diagrams
 
 Two modes:
