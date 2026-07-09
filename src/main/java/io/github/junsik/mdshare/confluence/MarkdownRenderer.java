@@ -1,6 +1,7 @@
 package io.github.junsik.mdshare.confluence;
 
 import com.vladsch.flexmark.ast.FencedCodeBlock;
+import com.vladsch.flexmark.ast.HtmlInline;
 import com.vladsch.flexmark.ext.gfm.strikethrough.StrikethroughExtension;
 import com.vladsch.flexmark.ext.gfm.tasklist.TaskListExtension;
 import com.vladsch.flexmark.ext.tables.TableCell;
@@ -65,7 +66,44 @@ public final class MarkdownRenderer {
                     }
                 })
                 .nodeRendererFactory(new MermaidNodeRenderer.Factory(baseUrl, krokiUrlSupplier, mermaidImageFormat::get))
+                .nodeRendererFactory(new BrTagNodeRenderer.Factory())
                 .build();
+    }
+
+    /**
+     * GFM 표는 행이 한 줄이라 셀 내부 줄바꿈 수단이 {@code <br>} 태그뿐이다.
+     * ESCAPE_HTML 은 유지하되 이 태그 하나만 실제 줄바꿈으로 통과시킨다.
+     */
+    private static final class BrTagNodeRenderer implements NodeRenderer {
+
+        private static final java.util.regex.Pattern BR_TAG =
+                java.util.regex.Pattern.compile("(?i)<br\\s*/?>");
+
+        @Override
+        public Set<NodeRenderingHandler<?>> getNodeRenderingHandlers() {
+            return new HashSet<>(Collections.singletonList(
+                    new NodeRenderingHandler<>(HtmlInline.class, this::render)));
+        }
+
+        private void render(HtmlInline node, NodeRendererContext context, HtmlWriter html) {
+            if (BR_TAG.matcher(node.getChars()).matches()) {
+                html.raw("<br/>");
+            } else {
+                context.delegateRender();
+            }
+        }
+
+        static final class Factory implements DelegatingNodeRendererFactory {
+            @Override
+            public NodeRenderer apply(DataHolder options) {
+                return new BrTagNodeRenderer();
+            }
+
+            @Override
+            public Set<Class<?>> getDelegates() {
+                return null; // delegate to the core renderer
+            }
+        }
     }
 
     /**

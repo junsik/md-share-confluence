@@ -80,7 +80,8 @@ exported to PDF. Follow these rules:
 - Start with a single `#` heading; it becomes the document title. Include
   the subject and time range in it.
 - Use GitHub-flavored Markdown only: tables, task lists, and fenced code
-  blocks with a language tag. Never use raw HTML — it is stripped.
+  blocks with a language tag. Never use raw HTML — it is stripped. The one
+  exception is `<br>` for line breaks inside table cells.
 - Diagrams are mermaid fenced code blocks. Diagrams carry structure; numbers
   belong in tables next to them. Keep node labels short (no metrics inside
   node labels).

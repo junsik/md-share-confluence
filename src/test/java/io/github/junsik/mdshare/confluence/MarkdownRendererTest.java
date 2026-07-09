@@ -26,6 +26,20 @@ public class MarkdownRendererTest {
     }
 
     @Test
+    public void brTagBecomesLineBreakInsideTableCell() {
+        String html = renderer.render("| a |\n| --- |\n| line1<br>line2 |\n");
+        assertTrue(html.contains("line1<br/>line2"));
+    }
+
+    @Test
+    public void brVariantsPassButOtherInlineHtmlStaysEscaped() {
+        String html = renderer.render("x<br/>y<BR />z <b>bold</b>");
+        assertTrue(html.contains("x<br/>y<br/>z"));
+        assertFalse(html.contains("<b>"));
+        assertTrue(html.contains("&lt;b&gt;"));
+    }
+
+    @Test
     public void rendersTaskList() {
         String html = renderer.render("- [x] done\n- [ ] todo\n");
         assertTrue(html.contains("checkbox"));
